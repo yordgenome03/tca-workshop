@@ -83,7 +83,10 @@ public struct RepositoryListView: View {
     public var body: some View {
         Group {
             if store.isLoading {
-                ProgressView()
+//                ProgressView()
+                Text("is Loading...")
+                    .font(.title2)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
                 List {
                     ForEach(store.repositories, id: \.id) { repository in
@@ -96,7 +99,7 @@ public struct RepositoryListView: View {
                                 Text(repository.description ?? "")
                                     .font(.body)
                                     .lineLimit(2)
-                                HStack(allignment: .center, spacing: 32) {
+                                HStack(alignment: .center, spacing: 32) {
                                     Label(
                                         title: {
                                             Text("\(repository.stargazersCount)")
@@ -122,3 +125,12 @@ public struct RepositoryListView: View {
     }
 }
 
+#Preview {
+    RepositoryListView(
+        store: .init(
+            initialState: RepositoryList.State()
+        ) {
+            RepositoryList()
+        }
+    )
+}
