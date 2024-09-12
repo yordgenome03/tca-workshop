@@ -2,6 +2,8 @@ import ComposableArchitecture
 import Entity
 import Foundation
 
+// MARK: - RepositoryList
+
 @Reducer
 public struct RepositoryList {
     
@@ -69,7 +71,7 @@ public struct RepositoryList {
     }()
 }
 
-// MARK: - View
+// MARK: - RepositoryListView
 
 import SwiftUI
 
