@@ -108,7 +108,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1520;
 				TargetAttributes = {
 					C76268EB2AAD4420008D03E7 = {
 						CreatedOnToolsVersion = 15.0;
@@ -191,6 +191,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DOCC_HOSTING_BASE_PATH = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -254,6 +255,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DOCC_HOSTING_BASE_PATH = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -283,6 +285,7 @@
 				CODE_SIGN_ENTITLEMENTS = iOS/iOS.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"iOS/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				DOCC_HOSTING_BASE_PATH = "";
@@ -322,6 +325,7 @@
 				CODE_SIGN_ENTITLEMENTS = iOS/iOS.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"iOS/Preview Content\"";
 				DEVELOPMENT_TEAM = "";
 				DOCC_HOSTING_BASE_PATH = "";
