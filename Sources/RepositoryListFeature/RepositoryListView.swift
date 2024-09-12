@@ -1,6 +1,8 @@
 import ComposableArchitecture
 import Entity
 import Foundation
+import IdentifiedCollections
+import SwiftUI
 
 // MARK: - RepositoryList
 
@@ -9,7 +11,7 @@ public struct RepositoryList {
     
     @ObservableState
     public struct State: Equatable {
-        var repositories: [Repository] = []
+        var repositoryRows: IdentifiedArrayOf<RepositoryRow.State> = []
         var isLoading: Bool = false
         
         public init() {}
@@ -18,6 +20,7 @@ public struct RepositoryList {
     public enum Action {
         case onAppear
         case searchRepositoriesResponse(Result<[Repository], Error>)
+        case repositoryRows(IdentifiedActionOf<RepositoryRow>)
     }
     
     public init() {}
@@ -54,13 +57,22 @@ public struct RepositoryList {
                 
                 switch result {
                 case let .success(response):
-                    state.repositories = response
+                    state.repositoryRows = .init(
+                        uniqueElements: response.map {
+                            .init(repository: $0)
+                        }
+                    ) 
                     return .none
                 case .failure:
                     // TODO: Handling error
                     return .none
                 }
+            case .repositoryRows:
+                return .none
             }
+        }
+        .forEach(\.repositoryRows, action: \.repositoryRows) {
+            RepositoryRow()
         }
     }
     
@@ -73,8 +85,6 @@ public struct RepositoryList {
 
 // MARK: - RepositoryListView
 
-import SwiftUI
-
 public struct RepositoryListView: View {
     let store: StoreOf<RepositoryList>
     
@@ -85,7 +95,7 @@ public struct RepositoryListView: View {
     public var body: some View {
         Group {
             if store.isLoading {
-//                ProgressView()
+                //                ProgressView()
                 Text("is Loading...")
                     .font(.title2)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
