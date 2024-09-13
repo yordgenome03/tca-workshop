@@ -92,30 +92,38 @@ public struct RepositoryList {
 // MARK: - RepositoryListView
 
 public struct RepositoryListView: View {
-    let store: StoreOf<RepositoryList>
+    @Bindable var store: StoreOf<RepositoryList>
     
     public init(store: StoreOf<RepositoryList>) {
         self.store = store
     }
     
     public var body: some View {
-        Group {
-            if store.isLoading {
-                ProgressView()
-            } else {
-                List {
-                    ForEach(
-                        store.scope(
-                            state: \.repositoryRows,
-                            action: \.repositoryRows
-                        ),
-                        content: RepositoryRowView.init(store:)
-                    )
+        NavigationStack {
+            Group {
+                if store.isLoading {
+                    ProgressView()
+                } else {
+                    List {
+                        ForEach(
+                            store.scope(
+                                state: \.repositoryRows,
+                                action: \.repositoryRows
+                            ),
+                            content: RepositoryRowView.init(store:)
+                        )
+                    }
                 }
             }
-        }
-        .onAppear {
-            store.send(.onAppear)
+            .onAppear {
+                store.send(.onAppear)
+            }
+            .navigationTitle("Repositories")
+            .searchable(
+                text: $store.query,
+                placement: .navigationBarDrawer,
+                prompt: "Input query"
+            )
         }
     }
 }
