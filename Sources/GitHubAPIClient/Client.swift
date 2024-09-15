@@ -45,7 +45,7 @@ extension GithubAPIClient: TestDependencyKey {
 
 extension DependencyValues {
     public var gitHubAPIClient: GithubAPIClient {
-        get { self[GithubAPIClient] }
-        set { self[GithubAPIClient] = newValue }
+        get { self[GithubAPIClient.self] }
+        set { self[GithubAPIClient.self] = newValue }
     }
 }
