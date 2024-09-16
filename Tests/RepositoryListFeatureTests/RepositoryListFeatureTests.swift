@@ -1,3 +1,4 @@
+import CombineSchedulers
 import ComposableArchitecture
 import Entity
 import XCTest
@@ -33,4 +34,35 @@ final class RepositoryListFeatureTests: XCTestCase {
             $0.isLoading = false
         }
     }
+    
+    func testQueryChanged() async {
+        let response: [Repository] = (1...10).map {
+            .mock(id: $0)
+        }
+        let testScheduler = DispatchQueue.test
+        
+        let store = TestStore(
+            initialState: RepositoryList.State()
+        ) {
+            RepositoryList()
+        } withDependencies: {
+            $0.gitHubAPIClient.searchRepositories = { _ in response }
+            $0.mainQueue = testScheduler.eraseToAnyScheduler()
+        }
+        
+        await store.send(\.binding.query, "test") {
+            $0.query = "test"
+        }
+        await testScheduler.advance(by: .seconds(0.3))
+        await store.receive(\.queryChangeDebounced) {
+            $0.isLoading = true
+        }
+        await store.receive(\.searchRepositoriesResponse) {
+            $0.repositoryRows = .init(
+                uniqueElements: response.map {
+                    .init(repository: $0)
+                }
+            )
+            $0.isLoading = false
+        }    }
 }
