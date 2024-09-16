@@ -6,6 +6,7 @@ import Foundation
 import GitHubAPIClient
 import IdentifiedCollections
 import SwiftUI
+import SwiftUINavigationCore
 
 // MARK: - RepositoryList
 
@@ -17,6 +18,7 @@ public struct RepositoryList {
         var repositoryRows: IdentifiedArrayOf<RepositoryRow.State> = []
         var isLoading: Bool = false
         var query: String = ""
+        @Presents var alert: AlertState<Action.Alert>?
         
         public init() {}
     }
@@ -27,6 +29,9 @@ public struct RepositoryList {
         case repositoryRows(IdentifiedActionOf<RepositoryRow>)
         case queryChangeDebounced
         case binding(BindingAction<State>)
+        case alert(PresentationAction<Alert>)
+        
+        public enum Alert: Equatable {} 
     }
     
     public init() {}
@@ -57,7 +62,7 @@ public struct RepositoryList {
                     ) 
                     return .none
                 case .failure:
-                    // TODO: Handling error
+                    state.alert = .networkError
                     return .none
                 }
             case .repositoryRows:
@@ -82,6 +87,8 @@ public struct RepositoryList {
                 return searchRepositories(by: state.query)
             case .binding:
                 return .none
+            case .alert:
+                return .none
             }
         }
         .forEach(\.repositoryRows, action: \.repositoryRows) {
@@ -99,6 +106,14 @@ public struct RepositoryList {
                 )
             )    
         }
+    }
+}
+
+extension AlertState where Action == RepositoryList.Action.Alert {
+    static let networkError = Self {
+        TextState("Network Error")
+    } message: {
+        TextState("Failed to fetch data.")
     }
 }
 
@@ -137,11 +152,17 @@ public struct RepositoryListView: View {
                 placement: .navigationBarDrawer,
                 prompt: "Input query"
             )
+            .alert(
+                $store.scope(
+                    state: \.alert,
+                    action: \.alert
+                )
+            )
         }
     }
 }
 
-#Preview {
+#Preview("API Succeeded") {
     RepositoryListView(
         store: .init(
             initialState: RepositoryList.State()
@@ -151,6 +172,24 @@ public struct RepositoryListView: View {
             $0.gitHubAPIClient.searchRepositories = { _ in
                 try await Task.sleep(for: .seconds(0.3))
                 return (1...20).map { .mock(id: $0) }
+            }
+        }
+    )
+}
+
+#Preview("API Failed") {
+    enum PreviewError: Error {
+        case fetchFailed
+    }
+    
+    return RepositoryListView(
+        store: .init(
+            initialState: RepositoryList.State()
+        ) {
+            RepositoryList()
+        } withDependencies: {
+            $0.gitHubAPIClient.searchRepositories = { _ in
+                throw PreviewError.fetchFailed
             }
         }
     )
