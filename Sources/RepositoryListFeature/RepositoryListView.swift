@@ -20,6 +20,7 @@ public struct RepositoryList {
         var isLoading: Bool = false
         var query: String = ""
         @Presents var destination: Destination.State?
+        var path = StackState<Path.State>()
         
         public init() {}
     }
@@ -30,7 +31,8 @@ public struct RepositoryList {
         case repositoryRows(IdentifiedActionOf<RepositoryRow>)
         case queryChangeDebounced
         case binding(BindingAction<State>)
-        case destination(PresentationAction<Destination.Action>)        
+        case destination(PresentationAction<Destination.Action>)
+        case path(StackAction<Path.State, Path.Action>)
     }
     
     public init() {}
@@ -68,8 +70,14 @@ public struct RepositoryList {
                 guard let repository = state.repositoryRows[id: id]?.repository
                 else { return .none }
                 
-                state.destination = .repositoryDetail(
-                    .init(repository: repository)
+//                state.destination = .repositoryDetail( // Tree-based navigation 用
+//                    .init(repository: repository)
+//                )
+                
+                state.path.append(
+                    .repositoryDetail(
+                        .init(repository: repository)
+                    )
                 )
                 return .none
             case .repositoryRows:
@@ -96,12 +104,15 @@ public struct RepositoryList {
                 return .none
             case .destination:
                 return .none
+            case .path:
+                return .none
             }
         }
         .forEach(\.repositoryRows, action: \.repositoryRows) {
             RepositoryRow()
         }
         .ifLet(\.$destination, action: \.destination)
+        .forEach(\.path, action: \.path)
     }
     
     func searchRepositories(by query: String) -> Effect<Action> {
@@ -129,9 +140,14 @@ extension RepositoryList {
     @Reducer(state: .equatable)
     public enum Destination {
         case alert(AlertState<Alert>)
-        case repositoryDetail(RepositoryDetail)
+//        case repositoryDetail(RepositoryDetail) // Tree-based navigation 用
         
         public enum Alert: Equatable {}
+    }
+    
+    @Reducer(state: .equatable)
+    public enum Path {
+        case repositoryDetail(RepositoryDetail)
     }
 }
 
@@ -177,13 +193,13 @@ public struct RepositoryListView: View {
                     action: \.destination.alert
                 )
             )
-            .navigationDestination(
-                item: $store.scope(
-                    state: \.destination?.repositoryDetail,
-                    action: \.destination.repositoryDetail
-                ),
-                destination: RepositoryDetailView.init(store:)
-            )
+//            .navigationDestination( // Tree-based navigation 用
+//                item: $store.scope(
+//                    state: \.destination?.repositoryDetail,
+//                    action: \.destination.repositoryDetail
+//                ),
+//                destination: RepositoryDetailView.init(store:)
+//            )
         }
     }
 }
