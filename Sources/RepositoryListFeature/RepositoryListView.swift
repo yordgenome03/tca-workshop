@@ -5,6 +5,7 @@ import Entity
 import Foundation
 import GitHubAPIClient
 import IdentifiedCollections
+import RepositoryDetailFeature
 import SwiftUI
 import SwiftUINavigationCore
 
@@ -18,7 +19,7 @@ public struct RepositoryList {
         var repositoryRows: IdentifiedArrayOf<RepositoryRow.State> = []
         var isLoading: Bool = false
         var query: String = ""
-        @Presents var alert: AlertState<Action.Alert>?
+        @Presents var destination: Destination.State?
         
         public init() {}
     }
@@ -29,9 +30,7 @@ public struct RepositoryList {
         case repositoryRows(IdentifiedActionOf<RepositoryRow>)
         case queryChangeDebounced
         case binding(BindingAction<State>)
-        case alert(PresentationAction<Alert>)
-        
-        public enum Alert: Equatable {} 
+        case destination(PresentationAction<Destination.Action>)        
     }
     
     public init() {}
@@ -62,9 +61,17 @@ public struct RepositoryList {
                     ) 
                     return .none
                 case .failure:
-                    state.alert = .networkError
+                    state.destination = .alert(.networkError)
                     return .none
                 }
+            case let .repositoryRows(.element(id, .delegate(.rowTapped))):
+                guard let repository = state.repositoryRows[id: id]?.repository
+                else { return .none }
+                
+                state.destination = .repositoryDetail(
+                    .init(repository: repository)
+                )
+                return .none
             case .repositoryRows:
                 return .none
             case .binding(\.query):
@@ -87,13 +94,14 @@ public struct RepositoryList {
                 return searchRepositories(by: state.query)
             case .binding:
                 return .none
-            case .alert:
+            case .destination:
                 return .none
             }
         }
         .forEach(\.repositoryRows, action: \.repositoryRows) {
             RepositoryRow()
         }
+        .ifLet(\.$destination, action: \.destination)
     }
     
     func searchRepositories(by query: String) -> Effect<Action> {
@@ -109,13 +117,24 @@ public struct RepositoryList {
     }
 }
 
-extension AlertState where Action == RepositoryList.Action.Alert {
+extension AlertState where Action == RepositoryList.Destination.Alert {
     static let networkError = Self {
         TextState("Network Error")
     } message: {
         TextState("Failed to fetch data.")
     }
 }
+
+extension RepositoryList {
+    @Reducer(state: .equatable)
+    public enum Destination {
+        case alert(AlertState<Alert>)
+        case repositoryDetail(RepositoryDetail)
+        
+        public enum Alert: Equatable {}
+    }
+}
+
 
 // MARK: - RepositoryListView
 
@@ -154,9 +173,16 @@ public struct RepositoryListView: View {
             )
             .alert(
                 $store.scope(
-                    state: \.alert,
-                    action: \.alert
+                    state: \.destination?.alert,
+                    action: \.destination.alert
                 )
+            )
+            .navigationDestination(
+                item: $store.scope(
+                    state: \.destination?.repositoryDetail,
+                    action: \.destination.repositoryDetail
+                ),
+                destination: RepositoryDetailView.init(store:)
             )
         }
     }
