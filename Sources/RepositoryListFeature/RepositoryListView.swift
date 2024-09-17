@@ -162,7 +162,12 @@ public struct RepositoryListView: View {
     }
     
     public var body: some View {
-        NavigationStack {
+        NavigationStack(
+            path: $store.scope(
+                state: \.path,
+                action: \.path
+            )
+        ) {
             Group {
                 if store.isLoading {
                     ProgressView()
@@ -192,7 +197,7 @@ public struct RepositoryListView: View {
                     state: \.destination?.alert,
                     action: \.destination.alert
                 )
-            )
+            ) 
 //            .navigationDestination( // Tree-based navigation 用
 //                item: $store.scope(
 //                    state: \.destination?.repositoryDetail,
@@ -200,6 +205,11 @@ public struct RepositoryListView: View {
 //                ),
 //                destination: RepositoryDetailView.init(store:)
 //            )
+        } destination: { store in
+            switch store.case {
+            case let .repositoryDetail(store):
+                RepositoryDetailView(store: store)
+            }
         }
     }
 }
